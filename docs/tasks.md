@@ -5,20 +5,20 @@
 ## 1. Project Setup
 
 ### 1.1 Development Environment
-- [ ] Create project repository
-- [ ] Set up Rust project with Cargo
-- [ ] Configure development environment with Docker
-- [ ] Set up CI/CD pipeline (GitHub Actions)
-- [ ] Configure linting and code formatting tools
+- [x] Create project repository
+- [x] Set up Rust project with Cargo
+- [x] Configure development environment with Docker
+- [x] Set up CI/CD pipeline (GitHub Actions)
+- [x] Configure linting and code formatting tools
 
 ### 1.2 Project Structure
-- [ ] Create directory structure following layered architecture
-- [ ] Set up module organization
-    [ ] Focus on the #5.1 User Model
-    [ ] Focus on the #5.2 Network Connection Model
-    [ ] Move implementation of other modules to backlog
-- [ ] Configure dependencies in Cargo.toml
-- [ ] Create basic README and documentation structure
+- [x] Create directory structure following layered architecture
+- [x] Set up module organization
+    - [x] Focus on the #5.1 User Model
+    - [x] Focus on the #5.2 Network Connection Model
+    - [ ] Move implementation tasks of other modules to backlog
+- [x] Configure dependencies in Cargo.toml
+- [x] Create basic README and documentation structure
 
 ### 1.3 Database Setup
 - [ ] Set up PostgreSQL database container

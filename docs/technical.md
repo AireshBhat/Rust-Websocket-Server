@@ -48,6 +48,7 @@ The system follows a layered architecture pattern with clearly defined boundarie
 ### 3.4 Storage Layer (`src/storage/`)
 
 * **Storage Traits**: Abstract interfaces for data access
+* **In-memory Storage Implementation**: In-memory storage layer for development and testing
 * **PostgreSQL Implementation**: Primary storage for user data and earnings
 * **Redis Implementation**: Caching and session management
 * **Blockchain Connector**: Interface for future blockchain integration
