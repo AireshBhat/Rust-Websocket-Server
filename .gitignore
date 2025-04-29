@@ -1,0 +1,12 @@
+/target
+
+.cursor/
+.cursorrules
+
+.env
+
+.env.local
+
+.env.development
+
+.env.production

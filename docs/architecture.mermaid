@@ -1,0 +1,91 @@
+flowchart TB
+    subgraph Client
+        Browser[Web Browser]
+        Extension[Browser Extension]
+    end
+    
+    subgraph "Dashboard System"
+        subgraph "HTTP/WebSocket Layer"
+            Router[Router]
+            Middleware[Middleware]
+            WSManager[WebSocket Manager]
+        end
+        
+        subgraph "Handler Layer"
+            WSHandler[WebSocket Handler]
+            AuthHandler[Auth Handler]
+            DashboardHandler[Dashboard Handler]
+            NetworkHandler[Network Handler]
+            ReferralHandler[Referral Handler]
+        end
+        
+        subgraph "Service Layer"
+            UserService[User Service]
+            NetworkService[Network Service]
+            EarningsService[Earnings Service]
+            ReferralService[Referral Service]
+            NotificationService[Notification Service]
+        end
+        
+        subgraph "Repository Layer"
+            StorageTrait[Storage Trait]
+            CacheTrait[Cache Trait]
+        end
+        
+        subgraph "Storage Implementations"
+            PostgresRepo[PostgreSQL Repository]
+            RedisCache[Redis Cache]
+            BlockchainConnector[Blockchain Connector]
+        end
+        
+        subgraph "Database"
+            Postgres[(PostgreSQL)]
+            Redis[(Redis)]
+        end
+        
+        subgraph "Future Integration"
+            Blockchain[(Blockchain)]
+        end
+        
+        subgraph "Cross-Cutting Concerns"
+            Logging[Logging]
+            ErrorHandling[Error Handling]
+            Metrics[Prometheus Metrics]
+            ConnectionPool[Connection Pool]
+        end
+    end
+    
+    subgraph "Load Balancer"
+        Nginx[Nginx]
+    end
+    
+    Browser --> Nginx
+    Extension --> Nginx
+    
+    Nginx --> Router
+    Router --> Middleware
+    Middleware --> WSManager & AuthHandler & DashboardHandler & NetworkHandler & ReferralHandler
+    
+    WSManager --> WSHandler
+    
+    WSHandler --> NotificationService
+    AuthHandler --> UserService
+    DashboardHandler --> EarningsService & ReferralService
+    NetworkHandler --> NetworkService
+    ReferralHandler --> ReferralService
+    
+    UserService & NetworkService & EarningsService & ReferralService --> StorageTrait
+    NotificationService --> CacheTrait
+    
+    StorageTrait --> PostgresRepo & BlockchainConnector
+    CacheTrait --> RedisCache
+    
+    PostgresRepo --> Postgres
+    RedisCache --> Redis
+    BlockchainConnector -.-> Blockchain
+    
+    ConnectionPool -.-> PostgresRepo & RedisCache
+    
+    Logging -.-> HTTP/WebSocket-Layer & Handler-Layer & Service-Layer & Repository-Layer
+    ErrorHandling -.-> HTTP/WebSocket-Layer & Handler-Layer & Service-Layer & Repository-Layer
+    Metrics -.-> HTTP/WebSocket-Layer & Handler-Layer & Service-Layer & Repository-Layer

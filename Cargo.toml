@@ -1,0 +1,72 @@
+[package]
+name = "temp-rust-websocket"
+version = "0.1.0"
+edition = "2021"
+authors = ["Dashboard System Team"]
+description = "High-performance WebSocket-based dashboard system"
+
+[dependencies]
+# WebSocket and HTTP server dependencies
+actix-web = "4.4.0"
+actix-web-actors = "4.2.0"
+actix = "0.13.0"
+actix-rt = "2.8.0"
+async-trait = "0.1"
+
+# Database
+sqlx = { version = "0.7", features = ["runtime-tokio", "tls-rustls", "postgres", "chrono", "uuid", "json"] }
+
+# Async runtime
+tokio = { version = "1.32.0", features = ["full"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-actix-web = "0.7"
+
+# ID generation
+nanoid = "0.4"
+
+# Configuration
+config = "0.13"
+dotenv = "0.15"
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Metrics
+prometheus-client = "0.21"
+
+# Redis
+redis = { version = "0.23", features = ["tokio-comp", "connection-manager"] }
+
+# Password hashing
+argon2 = "0.5"
+
+# Futures
+futures = "0.3"
+
+# HTTP client for external services
+reqwest = { version = "0.11", features = ["json"] }
+
+# JWT for authentication
+jsonwebtoken = "8.3"
+
+# UUID generation
+uuid = { version = "1.4", features = ["v4", "serde"] }
+
+# Random number generation
+rand = "0.8"
+
+[dev-dependencies]
+mockall = "0.11"
+rstest = "0.18"
+tokio-test = "0.4"
