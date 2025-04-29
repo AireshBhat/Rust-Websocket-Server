@@ -18,6 +18,7 @@ This document outlines the technical architecture for a high-performance WebSock
 * **Metrics**: prometheus-client
 * **Load Balancing**: nginx (for production deployment)
 * **Caching**: Redis
+* **Cryptography**: ed25519-dalek (for WebSocket authentication)
 
 ## 3. Core Architecture
 
@@ -29,6 +30,7 @@ The system follows a layered architecture pattern with clearly defined boundarie
 * **Route Definition**: HTTP and WebSocket endpoints
 * **Middleware Pipeline**: Authentication, logging, compression, CORS
 * **Connection Management**: WebSocket connection setup and session management
+* **Signature Verification**: ed25519 signature verification for WebSocket connections
 
 ### 3.2 Handler Layer (`src/handlers/`)
 
@@ -36,14 +38,16 @@ The system follows a layered architecture pattern with clearly defined boundarie
 * **REST Handler**: Processes HTTP requests for non-WebSocket operations
 * **Authentication Handler**: Validates user credentials and manages sessions
 * **Dashboard Handler**: Processes dashboard-specific requests
+* **Signature Handler**: Verifies ed25519 signatures during WebSocket handshake
 
 ### 3.3 Service Layer (`src/services/`)
 
-* **User Service**: User management and authentication
+* **User Service**: User management, authentication, and public key management
 * **Network Service**: Network connection tracking and statistics
 * **Earnings Service**: Calculation of user earnings based on connections and referrals
 * **Referral Service**: Management of user referrals and rewards
 * **Notification Service**: Real-time notifications to connected clients
+* **Signature Service**: Management of ed25519 signature verification
 
 ### 3.4 Storage Layer (`src/storage/`)
 
@@ -64,12 +68,14 @@ The system follows a layered architecture pattern with clearly defined boundarie
 * **Environment-based Configuration**: Loading settings from environment variables
 * **Server Settings**: WebSocket timeouts, heartbeat intervals, connection limits
 * **Database Configuration**: Connection pools and query timeouts
+* **Authentication Settings**: Configuration for signature verification mechanisms
 
 ### 3.7 Monitoring (`src/metrics/`)
 
 * **Prometheus Metrics**: Real-time system monitoring
 * **Connection Stats**: Active connections, message throughput
 * **Performance Metrics**: Response times, resource utilization
+* **Authentication Metrics**: Signature verification success/failure rates
 
 ## 4. WebSocket Implementation
 
@@ -81,6 +87,7 @@ pub struct WebSocketSession {
     pub user_id: Option<i64>,
     pub last_heartbeat: Instant,
     pub addr: Addr<WebSocketActor>,
+    pub public_key: Option<String>, // Added for ed25519 authentication
 }
 
 pub struct WebSocketActor {
@@ -88,23 +95,79 @@ pub struct WebSocketActor {
     pub user_id: Option<i64>,
     pub last_heartbeat: Instant,
     pub services: Arc<ServiceRegistry>,
+    pub authenticated: bool, // Flag for ed25519 authentication status
 }
 ```
 
-### 4.2 Scalability Approach
+### 4.2 WebSocket Authentication Workflow
+
+1. **Client Connection Initiation**:
+   * Client connects to WebSocket endpoint
+   * Actix spawns a new WebSocketActor for the connection
+
+2. **Initial Message with Signature**:
+   * Client sends an authentication message containing:
+     * User identifier (address/public key)
+     * Message timestamp to prevent replay attacks
+     * Ed25519 signature of the message
+
+3. **Signature Verification**:
+   * WebSocketActor receives the message
+   * Extracts public key and retrieves user information from database
+   * Verifies the signature using ed25519-dalek
+   * If verification succeeds, marks connection as authenticated
+   * If verification fails, closes the connection
+
+4. **Connection Establishment**:
+   * After successful authentication, normal WebSocket communication begins
+   * Periodic re-authentication may be required for long-lived connections
+
+```rust
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WebSocketAuthMessage {
+    pub public_key: String,
+    pub timestamp: i64,
+    pub nonce: String,
+    pub signature: String,
+}
+
+// Authentication flow in actor
+impl Handler<WebSocketAuthMessage> for WebSocketActor {
+    type Result = ();
+
+    fn handle(&mut self, msg: WebSocketAuthMessage, ctx: &mut Self::Context) {
+        // Verify signature
+        if self.services.signature_service.verify_signature(
+            &msg.public_key,
+            &format!("{}:{}", msg.timestamp, msg.nonce),
+            &msg.signature,
+        ) {
+            self.authenticated = true;
+            self.user_id = Some(self.services.user_service.get_user_id_by_public_key(&msg.public_key));
+        } else {
+            // Close connection on authentication failure
+            ctx.stop();
+        }
+    }
+}
+```
+
+### 4.3 Scalability Approach
 
 * **Actor Model**: Leveraging Actix's actor system for concurrent connection handling
 * **Connection Pooling**: Efficient database connection management
 * **Heartbeat Mechanism**: Detecting and cleaning up stale connections
 * **Sharding**: Distribution of WebSocket connections across server instances
 * **Backpressure Handling**: Flow control for message processing
+* **Efficient Signature Verification**: Optimized cryptographic operations
 
-### 4.3 Message Handling
+### 4.4 Message Handling
 
 ```rust
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type", content = "payload")]
 pub enum WebSocketMessage {
+    Auth { auth_data: WebSocketAuthMessage },
     Connect { user_id: Option<i64>, device_id: String },
     Heartbeat,
     NetworkUpdate { networks: Vec<NetworkStatus> },
@@ -125,6 +188,7 @@ pub struct User {
     pub email: String,
     pub username: String,
     pub wallet_address: Option<String>,
+    pub public_key: Option<String>, // Added for ed25519 authentication
     pub created_at: DateTime<Utc>,
     pub last_active: DateTime<Utc>,
 }
@@ -190,6 +254,19 @@ pub enum ReferralStatus {
 }
 ```
 
+### 5.5 Public Key Model
+
+```rust
+#[derive(Debug, Clone, sqlx::FromRow, Serialize, Deserialize)]
+pub struct UserPublicKey {
+    pub user_id: i64,
+    pub public_key: String,
+    pub created_at: DateTime<Utc>,
+    pub last_used: Option<DateTime<Utc>>,
+    pub revoked: bool,
+}
+```
+
 ## 6. Error Handling Mechanism
 
 ### 6.1 Error Types
@@ -202,6 +279,7 @@ pub enum DashboardErrorType {
     Unauthorized,
     InvalidCredentials,
     SessionExpired,
+    InvalidSignature,
     
     // WebSocket errors
     ConnectionError(String),
@@ -223,37 +301,6 @@ pub enum DashboardErrorType {
 }
 ```
 
-### 6.2 Error Structure
-
-```rust
-pub type DashboardResult<T> = Result<T, DashboardError>;
-
-pub struct DashboardError {
-    pub error_type: DashboardErrorType,
-    pub inner: anyhow::Error,
-    pub context: Option<String>,
-}
-
-impl actix_web::error::ResponseError for DashboardError {
-    fn status_code(&self) -> StatusCode {
-        match self.error_type {
-            DashboardErrorType::Unauthorized | 
-            DashboardErrorType::InvalidCredentials |
-            DashboardErrorType::SessionExpired => StatusCode::UNAUTHORIZED,
-            
-            DashboardErrorType::EntityNotFound => StatusCode::NOT_FOUND,
-            
-            DashboardErrorType::InvalidNetworkData |
-            DashboardErrorType::MessageParseError => StatusCode::BAD_REQUEST,
-            
-            DashboardErrorType::RateLimited => StatusCode::TOO_MANY_REQUESTS,
-            
-            _ => StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
-}
-```
-
 ## 7. API Endpoints
 
 ### 7.1 WebSocket Endpoints
@@ -269,66 +316,85 @@ impl actix_web::error::ResponseError for DashboardError {
 * **`/api/networks`**: Network connection management
 * **`/api/earnings`**: Earnings history and statistics
 * **`/api/referrals`**: Referral management
+* **`/api/keys`**: Public key management
 
-## 8. Scaling Strategy
+## 8. Signature Verification Service
 
-### 8.1 Horizontal Scaling
+### 8.1 Service Implementation
 
-* Multiple server instances behind a load balancer
-* Sticky sessions for WebSocket connections
-* Distributed session management with Redis
+```rust
+pub struct SignatureService {
+    // Dependencies
+}
 
-### 8.2 Database Scaling
+impl SignatureService {
+    // Create a new SignatureService
+    pub fn new() -> Self {
+        Self {}
+    }
 
-* Connection pooling
-* Read replicas for query-heavy operations
-* Partitioning for historical data
+    // Verify an ed25519 signature
+    pub async fn verify_signature(
+        &self,
+        public_key: &str,
+        message: &str,
+        signature: &str,
+    ) -> Result<bool, DashboardError> {
+        // Decode public key from hex/base64
+        let public_key_bytes = decode_public_key(public_key)?;
+        
+        // Parse as ed25519 public key
+        let public_key = PublicKey::from_bytes(&public_key_bytes)
+            .map_err(|e| DashboardError::InvalidSignature(e.to_string()))?;
+        
+        // Decode signature from hex/base64
+        let signature_bytes = decode_signature(signature)?;
+        
+        // Parse as ed25519 signature
+        let signature = Signature::from_bytes(&signature_bytes)
+            .map_err(|e| DashboardError::InvalidSignature(e.to_string()))?;
+        
+        // Verify the signature
+        match public_key.verify(message.as_bytes(), &signature) {
+            Ok(_) => Ok(true),
+            Err(_) => Ok(false),
+        }
+    }
+}
+```
 
-### 8.3 Message Queue Integration
+### 8.2 Integration with User Service
 
-* Optional RabbitMQ or Kafka for message processing
-* Buffering for handling traffic spikes
+The UserService will be extended to support retrieving users by their public key:
 
-### 8.4 Optimization Techniques
+```rust
+impl<T: UserStorage> UserService<T> {
+    // Get user by public key
+    pub async fn get_user_by_public_key(&self, public_key: &str) -> DashboardResult<Option<User>> {
+        self.storage.find_user_by_public_key(public_key).await
+    }
+    
+    // Register a new public key for a user
+    pub async fn register_public_key(&self, user_id: i64, public_key: &str) -> DashboardResult<()> {
+        self.storage.store_public_key(user_id, public_key).await
+    }
+}
+```
 
-* Binary protocol for WebSocket messages (MessagePack)
-* Batched database operations
-* Aggressive caching for dashboard data
-* Selective updates to minimize WebSocket traffic
+## 9. Integration with Existing Authentication
 
-## 9. Blockchain Integration Strategy
+The system will support both traditional JWT-based authentication for REST APIs and ed25519 signature-based authentication for WebSocket connections:
 
-### 9.1 Current Implementation (Server-based)
+1. **REST API Authentication**: Continues to use JWT tokens
+2. **WebSocket Authentication**: Uses ed25519 signatures
+3. **Hybrid Approach**: WebSocket connections can also be authenticated with JWT tokens when needed
 
-* Traditional server architecture with PostgreSQL storage
-* Preparation for future blockchain migration
+This dual-authentication approach provides flexibility while maintaining security for real-time connections.
 
-### 9.2 Future Blockchain Integration
+## 10. Performance Considerations
 
-* Abstract storage layer with blockchain implementation
-* Smart contract interface for rewards and referrals
-* Gradual migration strategy
-* Hybrid operation during transition
-
-## 10. Development Guidelines
-
-### 10.1 Code Organization
-
-* Follow Rust idioms and best practices
-* Clear module boundaries
-* Comprehensive documentation
-* Unit and integration tests for all components
-
-### 10.2 Error Handling
-
-* Use custom error types
-* Proper error propagation
-* Detailed logging
-* Client-friendly error messages
-
-### 10.3 Performance Considerations
-
-* Benchmark critical paths
-* Profile for memory usage
-* Stress test WebSocket connections
-* Optimize database queries
+* **Signature Verification Cost**: ed25519 verification is computationally efficient but should be cached appropriately
+* **Connection Rate Limiting**: Prevent DoS attacks through signature verification
+* **Caching Public Keys**: Store frequently used public keys in memory/Redis
+* **Batched Database Queries**: Optimize public key lookups
+* **Pre-authentication**: Verify signatures before fully establishing WebSocket connections

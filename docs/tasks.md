@@ -34,6 +34,7 @@
 - [ ] Create configuration module for loading settings
 - [ ] Implement validation for configuration values
 - [ ] Set up runtime configuration reloading
+- [ ] Add configuration options for ed25519 signature verification
 
 ### 2.2 Logging & Error Handling
 - [ ] Set up tracing and logging infrastructure
@@ -41,21 +42,23 @@
 - [ ] Create error mapping between layers
 - [ ] Implement structured logging format
 - [ ] Configure log levels and filters
+- [ ] Add error types for cryptographic operations
 
 ### 2.3 Common Utilities
 - [ ] Implement ID generation using nanoid
 - [ ] Create utility functions for common operations
 - [ ] Set up serialization helpers
 - [ ] Implement time-related utilities
+- [ ] Create cryptographic utility functions for ed25519 operations
 
 ## 3. HTTP/WebSocket Layer Implementation
 
 ### 3.1 Server Setup
-- [ ] Configure Actix web server
-- [ ] Set up HTTP routes module
-- [ ] Implement WebSocket acceptance
-- [ ] Configure server timeouts and limits
-- [ ] Set up graceful shutdown handling
+- [x] Configure Actix web server
+- [x] Set up HTTP routes module
+- [x] Implement WebSocket acceptance
+- [x] Configure server timeouts and limits
+- [x] Set up graceful shutdown handling
 
 ### 3.2 Middleware
 - [ ] Implement authentication middleware
@@ -71,6 +74,8 @@
 - [ ] Implement heartbeat mechanism
 - [ ] Create connection registry for tracking active sessions
 - [ ] Implement message broadcasting system
+- [ ] Add support for ed25519 signature verification during WebSocket handshake
+- [ ] Implement WebSocket connection authentication workflow
 
 ## 4. Handler Layer Implementation
 
@@ -80,6 +85,8 @@
 - [ ] Set up authentication for WebSocket connections
 - [ ] Implement session initialization
 - [ ] Create message routing system
+- [ ] Implement signature verification handler for WebSocket authentication
+- [ ] Add workflow: connection -> spawning thread -> signature verification -> connection establishment
 
 ### 4.2 HTTP API Handlers
 - [ ] Implement authentication handlers
@@ -87,12 +94,14 @@
 - [ ] Implement network management handlers
 - [ ] Create dashboard data handlers
 - [ ] Implement referral system handlers
+- [ ] Create public key management handlers
 
 ### 4.3 Error Responses
 - [ ] Create consistent error response format
 - [ ] Implement error conversion for HTTP responses
 - [ ] Create WebSocket error messages
 - [ ] Set up error logging in handlers
+- [ ] Add specific error handling for signature verification failures
 
 ## 5. Service Layer Implementation
 
@@ -102,6 +111,8 @@
 - [ ] Implement authentication logic
 - [ ] Create session management
 - [ ] Implement user profile management
+- [ ] Add public key management functionality
+- [ ] Implement methods for retrieving users by public key
 
 ### 5.2 Network Service
 - [ ] Create network service interface
@@ -131,6 +142,13 @@
 - [ ] Implement notification prioritization
 - [ ] Create notification history tracking
 
+### 5.6 Signature Service
+- [ ] Create signature service interface
+- [ ] Implement ed25519 signature verification
+- [ ] Add caching for frequently used public keys
+- [ ] Create utilities for encoding/decoding keys and signatures
+- [ ] Implement nonce management to prevent replay attacks
+
 ## 6. Storage Layer Implementation
 
 ### 6.1 Storage Traits
@@ -139,6 +157,7 @@
 - [ ] Implement network storage trait
 - [ ] Create earnings storage trait
 - [ ] Implement referral storage trait
+- [ ] Add public key storage trait methods
 
 ### 6.2 PostgreSQL Implementation
 - [ ] Implement PostgreSQL user repository
@@ -146,6 +165,7 @@
 - [ ] Implement PostgreSQL earnings repository
 - [ ] Create PostgreSQL referral repository
 - [ ] Implement transaction management
+- [ ] Add storage methods for public keys
 
 ### 6.3 Redis Implementation
 - [ ] Implement Redis caching layer
@@ -153,6 +173,7 @@
 - [ ] Implement Redis for connection tracking
 - [ ] Create Redis pub/sub for notifications
 - [ ] Implement Redis rate limiting
+- [ ] Add caching for public keys and signatures
 
 ### 6.4 Blockchain Connector Interface
 - [ ] Design blockchain connector traits
@@ -169,6 +190,8 @@
 - [ ] Implement user preferences model
 - [ ] Create user session model
 - [ ] Implement database mappings for user models
+- [ ] Add public key field to user model
+- [ ] Create user public key model for multiple keys per user
 
 ### 7.2 Network Models
 - [ ] Implement network connection model
@@ -191,6 +214,12 @@
 - [ ] Create referral rewards model
 - [ ] Implement database mappings for referral models
 
+### 7.5 Authentication Models
+- [ ] Implement WebSocket authentication message model
+- [ ] Create signature verification request/response models
+- [ ] Implement public key management models
+- [ ] Create authentication token models
+
 ## 8. Testing Implementation
 
 ### 8.1 Unit Tests
@@ -199,6 +228,7 @@
 - [ ] Create model validation tests
 - [ ] Implement error handling tests
 - [ ] Create utility function tests
+- [ ] Add tests for signature verification
 
 ### 8.2 Integration Tests
 - [ ] Set up integration test infrastructure
@@ -206,6 +236,7 @@
 - [ ] Create WebSocket connection tests
 - [ ] Implement database interaction tests
 - [ ] Create end-to-end flow tests
+- [ ] Add tests for WebSocket authentication flow
 
 ### 8.3 Performance Tests
 - [ ] Set up performance testing framework
@@ -213,6 +244,7 @@
 - [ ] Create database performance tests
 - [ ] Implement message throughput tests
 - [ ] Create scalability tests
+- [ ] Add signature verification performance tests
 
 ## 9. Metrics and Monitoring
 
@@ -222,6 +254,7 @@
 - [ ] Create connection metrics
 - [ ] Implement performance metrics
 - [ ] Create business metrics
+- [ ] Add authentication and signature verification metrics
 
 ### 9.2 Dashboards
 - [ ] Create Grafana dashboard for system monitoring
@@ -229,6 +262,7 @@
 - [ ] Create performance dashboard
 - [ ] Implement business metrics dashboard
 - [ ] Create alerting rules
+- [ ] Add authentication monitoring dashboard
 
 ## 10. Deployment and Scaling
 
@@ -238,6 +272,7 @@
 - [ ] Create Docker Compose setup
 - [ ] Implement health checks
 - [ ] Create container orchestration
+- [ ] Add ed25519-dalek dependency to Docker build
 
 ### 10.2 Load Balancing
 - [ ] Set up Nginx load balancer
@@ -245,6 +280,7 @@
 - [ ] Create SSL termination
 - [ ] Implement rate limiting at load balancer
 - [ ] Create health check endpoints
+- [ ] Add specific rate limiting for WebSocket authentication
 
 ### 10.3 Database Scaling
 - [ ] Implement connection pooling optimization
@@ -252,6 +288,7 @@
 - [ ] Implement database sharding strategy
 - [ ] Create database backup system
 - [ ] Implement database monitoring
+- [ ] Optimize database queries for public key lookups
 
 ### 10.4 Horizontal Scaling
 - [ ] Create auto-scaling configuration
@@ -259,6 +296,7 @@
 - [ ] Create service discovery
 - [ ] Implement consensus for distributed state
 - [ ] Create scaling policies
+- [ ] Add distributed caching for public keys
 
 ## 11. Documentation
 
@@ -268,6 +306,8 @@
 - [ ] Create database schema documentation
 - [ ] Implement code documentation
 - [ ] Create deployment documentation
+- [ ] Add documentation for WebSocket authentication flow
+- [ ] Document signature verification process
 
 ### 11.2 User Documentation
 - [ ] Create administrator guide
@@ -275,6 +315,8 @@
 - [ ] Create troubleshooting guide
 - [ ] Implement integration guide
 - [ ] Create FAQs
+- [ ] Add guide for managing public keys
+- [ ] Create documentation for client-side signature generation
 
 ## 12. Blockchain Integration Preparation
 
@@ -284,6 +326,7 @@
 - [ ] Implement data migration strategy
 - [ ] Create hybrid storage approach
 - [ ] Implement feature flagging for blockchain features
+- [ ] Design integration between ed25519 keys and blockchain wallets
 
 ### 12.2 Prototype Implementation
 - [ ] Create blockchain connector prototype
@@ -291,3 +334,4 @@
 - [ ] Create blockchain data storage prototype
 - [ ] Implement transaction signing
 - [ ] Create wallet integration prototype
+- [ ] Implement ed25519 signature verification on blockchain

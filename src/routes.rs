@@ -1,4 +1,5 @@
 use actix_web::{web, Scope};
+use crate::handlers::websocket::{dashboard_ws, earnings_ws, referrals_ws};
 
 pub fn api_routes() -> Scope {
     web::scope("/api")
@@ -42,6 +43,9 @@ pub fn referral_routes() -> Scope {
 pub fn websocket_routes() -> Scope {
     web::scope("/ws")
         // Dashboard WebSocket endpoint
+        .route("/dashboard", web::get().to(dashboard_ws))
         // Earnings WebSocket endpoint
+        .route("/earnings", web::get().to(earnings_ws))
         // Referrals WebSocket endpoint
+        .route("/referrals", web::get().to(referrals_ws))
 } 

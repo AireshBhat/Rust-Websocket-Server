@@ -8,6 +8,7 @@ The Dashboard System aims to create a high-performance WebSocket-based dashboard
 3. **Network Monitoring System** - Real-time tracking of network connections
 4. **Referral Management System** - Handling user referrals and rewards
 5. **Blockchain Integration Layer** - For future migration to blockchain-based storage
+6. **Ed25519 Authentication System** - Secure WebSocket authentication using cryptographic signatures
 
 ## Implementation Status
 
@@ -26,48 +27,55 @@ The Dashboard System aims to create a high-performance WebSocket-based dashboard
 - ✅ Project structure implemented (models, storage traits, services)
 
 ### In Progress
-- Core WebSocket Server implementation (0%)
-  - Project structure and organization (0% 🔄)
-  - Configuration module (0% 🔄)
-  - HTTP routing layer (0% 🔄)
-  - WebSocket connection handling (0% 🔄)
-  - Error handling framework (0% 🔄)
-  - Data models (0% 🔄)
-  - Logging setup (0% 🔄)
-- Service Layer with dependency injection (0% 🔄)
-  - Service interfaces defined (0% 🔄)
-  - Constructor-based storage injection design (0% 🔄)
-  - UserService implementation (0% 🔄)
-  - NetworkService implementation (0% 🔄)
-  - EarningsService implementation (0% ❌)
-  - ReferralService implementation (0% ❌)
-  - NotificationService implementation (0% 🔄)
-- WebSocket Handler implementation (0%)
-  - WebSocket session management (0% 🔄)
-  - Message serialization (0% 🔄)
-  - Connection authentication (0% 🔄)
-  - Heartbeat mechanism (0% 🔄)
-  - Connection registry (0% 🔄)
-- HTTP Handlers with service dependency (0% 🔄)
-  - Handler interfaces defined (0% 🔄)
-  - Injection of services via web::Data (0% 🔄)
-  - Authentication handlers (0% 🔄)
-  - Dashboard data handlers (0% ❌)
-  - Referral management handlers (0% ❌)
-- Storage Layer implementation (0%)
-  - Storage trait interfaces (0% ✅)
-  - In-memory storage implementation (0% 🔄)
-  - Redis cache integration (0% 🔄)
-  - PostgreSQL schema design (0% ✅)
-  - Database migrations (0% 🔄)
-- Dependency injection implementation (0%)
-  - Storage initialization in main.rs (0% 🔄)
-  - Service creation with storage injection (0% 🔄)
-  - Service registration with Actix app (0% 🔄)
-- Unit tests for core components (0%)
-  - Tests for service layer with mock storage (0% 🔄)
-  - Tests for WebSocket handlers (0% 🔄)
-  - Tests for HTTP handlers (0% ❌)
+- Core WebSocket Server implementation
+  - Project structure and organization
+  - Configuration module
+  - HTTP routing layer
+  - WebSocket connection handling
+  - Error handling framework
+  - Data models
+  - Logging setup
+  - Ed25519 signature verification
+  - WebSocket authentication workflow
+- Service Layer with dependency injection
+  - Service interfaces defined
+  - Constructor-based storage injection design
+  - UserService implementation
+  - NetworkService implementation
+  - SignatureService implementation
+  - EarningsService implementation (❌)
+  - ReferralService implementation (❌)
+  - NotificationService implementation (❌)
+- WebSocket Handler implementation
+  - WebSocket session management
+  - Message serialization
+  - Connection authentication
+  - Heartbeat mechanism
+  - Connection registry
+  - Signature verification during handshake
+- HTTP Handlers with service dependency
+  - Handler interfaces defined
+  - Injection of services via web::Data
+  - Authentication handlers
+  - Dashboard data handlers
+  - Referral management handlers
+  - Public key management handlers
+- Storage Layer implementation
+  - Storage trait interfaces
+  - In-memory storage implementation
+  - Redis cache integration
+  - PostgreSQL schema design
+  - Database migrations
+  - Public key storage
+- Dependency injection implementation
+  - Storage initialization in main.rs
+  - Service creation with storage injection
+  - Service registration with Actix app
+- Unit tests for core components
+  - Tests for service layer with mock storage
+  - Tests for WebSocket handlers
+  - Tests for HTTP handlers
+  - Tests for signature verification
 
 ### Planned (Not Started)
 - Dashboard front-end development
@@ -83,18 +91,27 @@ The Dashboard System aims to create a high-performance WebSocket-based dashboard
 
 ## Current Phase Details
 
-### Phase 1: Core WebSocket Server (Current)
+### Phase 1: Core WebSocket Server with Ed25519 Authentication (Current)
 
-We're currently implementing the core WebSocket server with the following status:
+We're currently implementing the core WebSocket server with ed25519 signature verification for secure authentication with the following status:
 
 - **Core Framework**: Implementing architectural design using Actix-web, setting up project structure, and implementing base components.
-- **HTTP Layer**: Implementing route definitions and middleware setup for authentication, logging, and CORS.
-- **WebSocket Layer**: Implementing connection handling, session management, heartbeat mechanism, and message routing.
+- **HTTP Layer**: ✅ Implemented route definitions and middleware setup for authentication, logging, and CORS.
+- **WebSocket Layer**: 🔄 Implementing connection handling, session management, heartbeat mechanism, and message routing.
+  - ✅ Basic WebSocket session implementation with heartbeat mechanism
+  - ✅ WebSocket endpoint routing
+  - ✅ Server configuration with proper timeouts and limits
+  - ✅ Graceful shutdown handling
+  - 🔄 Authentication flow with ed25519 signatures (in progress)
+  - 🔄 Message serialization and handling
+  - ❌ Connection registry for tracking active connections
+- **Authentication Flow**: Implementing ed25519-dalek address authentication with the workflow: Incoming WebSocket connection → Spawn new Rust actix thread → Verify signature of message → Connect WebSocket stream.
 - **Handler Layer**: Basic handlers are in place, with ongoing updates to implement service dependency injection.
 - **Service Layer**: Service interfaces defined and implementing dependency injection pattern. Implementation progress varies by service:
   - **UserService**: Early implementation (20%) with basic user management and authentication.
   - **NetworkService**: Initial implementation (10%) with basic network tracking.
   - **NotificationService**: Partial implementation (30%) with WebSocket message broadcasting.
+  - **SignatureService**: Not yet started (0%) for cryptographic signature verification.
   - **EarningsService**: Not yet started.
   - **ReferralService**: Not yet started.
 - **Storage Layer**: Defined traits, implementing in-memory storage for testing and development.
@@ -115,6 +132,8 @@ We're currently implementing the core WebSocket server with the following status
 - ❌ User profile management
 - ❌ Password reset flow
 - ❌ Email verification
+- 🔄 Public key management
+- 🔄 User retrieval by public key
 
 ### NetworkService (0% complete)
 - ✅ Basic network interface
@@ -146,6 +165,14 @@ We're currently implementing the core WebSocket server with the following status
 - ❌ Notification prioritization
 - ❌ Notification history
 
+### SignatureService (0% complete)
+- 🔄 Basic signature interface
+- 🔄 Ed25519 signature verification
+- ❌ Public key caching
+- ❌ Nonce management for replay protection
+- ❌ Integration with UserService
+- ❌ Performance optimization
+
 ## Architectural Updates
 
 We've updated our architectural approach to better handle millions of concurrent WebSocket connections:
@@ -165,16 +192,24 @@ We've updated our architectural approach to better handle millions of concurrent
 
 6. **Message Broadcasting**: Optimizing notification delivery to minimize overhead when broadcasting to millions of connections.
 
+7. **Ed25519 Authentication Flow**:
+   - WebSocket connections authenticate using ed25519 cryptographic signatures
+   - Signatures verify user identity without storing sensitive credentials
+   - Actor-based verification allowing immediate connection termination on failure
+   - Potential for signature caching to improve performance
+
 ## Technical Debt/Issues
 
 1. **WebSocket Scaling**: Need to verify the architecture can truly handle millions of concurrent connections.
 2. **Database Load**: High-volume data for network connections may cause database bottlenecks.
 3. **Redis Configuration**: Need to optimize Redis for connection tracking and caching.
 4. **Error Handling**: Need to ensure consistent error response format across all endpoints.
-5. **WebSocket Authentication**: Need to implement secure authentication for WebSocket connections.
+5. **WebSocket Authentication**: Need to implement secure authentication for WebSocket connections using ed25519-dalek.
 6. **Service Implementation**: Need to complete service implementations with the new dependency injection pattern.
 7. **Testing Infrastructure**: Need comprehensive testing for WebSocket connections at scale.
 8. **Monitoring**: Need to implement detailed metrics collection for performance monitoring.
+9. **Signature Verification Performance**: Need to optimize cryptographic operations for high-volume connections.
+10. **Public Key Management**: Need to implement efficient storage and retrieval of public keys.
 
 ## Next Steps
 
@@ -182,21 +217,30 @@ We've updated our architectural approach to better handle millions of concurrent
    - Finish WebSocket session management
    - Complete heartbeat mechanism
    - Implement connection registry
-2. Complete basic service implementations:
-   - Finish UserService for authentication
+   - Implement signature verification during handshake
+2. Update User model and storage:
+   - Add public key field to User model
+   - Create UserPublicKey model for multiple keys per user
+   - Update storage traits and implementations
+3. Implement SignatureService:
+   - Create service for ed25519 signature verification
+   - Implement caching for frequently used keys
+   - Add utilities for working with cryptographic signatures
+4. Complete basic service implementations:
+   - Finish UserService with public key management
    - Enhance NetworkService for connection tracking
    - Start EarningsService implementation
-3. Implement storage layer:
+5. Implement storage layer:
    - Complete in-memory implementation
    - Implement PostgreSQL repositories
    - Configure Redis caching
-4. Set up metrics collection:
+6. Set up metrics collection:
    - Implement Prometheus integration
    - Create connection metrics
    - Set up performance monitoring
-5. Update all handlers to use service layer
-6. Implement authentication system
-7. Add unit tests for all services
-8. Set up CI/CD pipelines
-9. Begin developing dashboard front-end
-10. Start load testing for connection scaling
+7. Update all handlers to use service layer
+8. Implement authentication system with both JWT and ed25519
+9. Add unit tests for all services including signature verification
+10. Set up CI/CD pipelines
+11. Begin developing dashboard front-end
+12. Start load testing for connection scaling
