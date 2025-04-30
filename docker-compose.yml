@@ -27,9 +27,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=dashboard
+      - POSTGRES_USER=airesh-referral
+      - POSTGRES_PASSWORD=hound123
+      - POSTGRES_DB=referral-backend
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:

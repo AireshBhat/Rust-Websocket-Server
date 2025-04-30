@@ -105,6 +105,10 @@ We're currently implementing the core WebSocket server with ed25519 signature ve
   - 🔄 Authentication flow with ed25519 signatures (in progress)
   - 🔄 Message serialization and handling
   - ❌ Connection registry for tracking active connections
+- **Testing Infrastructure**: 🔄 Implementing testing tools and utilities
+  - ✅ Genesis data state for development and testing
+  - ✅ Database seeding for test environments
+  - 🔄 In-memory test data for WebSocket authentication
 - **Authentication Flow**: Implementing ed25519-dalek address authentication with the workflow: Incoming WebSocket connection → Spawn new Rust actix thread → Verify signature of message → Connect WebSocket stream.
 - **Handler Layer**: Basic handlers are in place, with ongoing updates to implement service dependency injection.
 - **Service Layer**: Service interfaces defined and implementing dependency injection pattern. Implementation progress varies by service:

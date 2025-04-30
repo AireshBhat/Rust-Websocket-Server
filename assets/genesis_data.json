@@ -1,0 +1,258 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "user1@example.com",
+      "username": "testuser1",
+      "wallet_address": "0x1234567890abcdef1234567890abcdef12345678",
+      "created_at": "2023-01-01T00:00:00Z",
+      "last_active": "2023-01-15T12:30:00Z"
+    },
+    {
+      "id": 2,
+      "email": "user2@example.com",
+      "username": "testuser2",
+      "wallet_address": "0x2345678901abcdef2345678901abcdef23456789",
+      "created_at": "2023-01-02T00:00:00Z",
+      "last_active": "2023-01-16T10:45:00Z"
+    },
+    {
+      "id": 3,
+      "email": "user3@example.com",
+      "username": "testuser3",
+      "wallet_address": null,
+      "created_at": "2023-01-03T00:00:00Z",
+      "last_active": "2023-01-14T18:20:00Z"
+    },
+    {
+      "id": 4,
+      "email": "user4@example.com",
+      "username": "testuser4",
+      "wallet_address": "0x4567890123abcdef4567890123abcdef45678901",
+      "created_at": "2023-01-04T00:00:00Z",
+      "last_active": "2023-01-17T09:15:00Z"
+    },
+    {
+      "id": 5,
+      "email": "user5@example.com",
+      "username": "testuser5",
+      "wallet_address": null,
+      "created_at": "2023-01-05T00:00:00Z",
+      "last_active": "2023-01-13T14:50:00Z"
+    }
+  ],
+  "user_credentials": [
+    {
+      "user_id": 1,
+      "password_hash": "$argon2id$v=19$m=16,t=2,p=1$c2FsdHNhbHRzYWx0$u1bDD/hh2A3bMAm5GYMmPA",
+      "salt": "saltsaltsalt",
+      "updated_at": "2023-01-01T00:00:00Z"
+    },
+    {
+      "user_id": 2,
+      "password_hash": "$argon2id$v=19$m=16,t=2,p=1$c2FsdHNhbHRzYWx0$u1bDD/hh2A3bMAm5GYMmPA",
+      "salt": "saltsaltsalt",
+      "updated_at": "2023-01-02T00:00:00Z"
+    },
+    {
+      "user_id": 3,
+      "password_hash": "$argon2id$v=19$m=16,t=2,p=1$c2FsdHNhbHRzYWx0$u1bDD/hh2A3bMAm5GYMmPA",
+      "salt": "saltsaltsalt",
+      "updated_at": "2023-01-03T00:00:00Z"
+    },
+    {
+      "user_id": 4,
+      "password_hash": "$argon2id$v=19$m=16,t=2,p=1$c2FsdHNhbHRzYWx0$u1bDD/hh2A3bMAm5GYMmPA",
+      "salt": "saltsaltsalt",
+      "updated_at": "2023-01-04T00:00:00Z"
+    },
+    {
+      "user_id": 5,
+      "password_hash": "$argon2id$v=19$m=16,t=2,p=1$c2FsdHNhbHRzYWx0$u1bDD/hh2A3bMAm5GYMmPA",
+      "salt": "saltsaltsalt",
+      "updated_at": "2023-01-05T00:00:00Z"
+    }
+  ],
+  "network_connections": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "network_name": "Home Network",
+      "ip_address": "192.168.1.100",
+      "connected": true,
+      "connection_time": 7200,
+      "network_score": 95.5,
+      "points_earned": 150.25,
+      "created_at": "2023-01-10T08:00:00Z",
+      "updated_at": "2023-01-15T12:30:00Z"
+    },
+    {
+      "id": 2,
+      "user_id": 1,
+      "network_name": "Work Network",
+      "ip_address": "10.0.0.123",
+      "connected": false,
+      "connection_time": 3600,
+      "network_score": 88.0,
+      "points_earned": 75.5,
+      "created_at": "2023-01-11T09:00:00Z",
+      "updated_at": "2023-01-14T18:00:00Z"
+    },
+    {
+      "id": 3,
+      "user_id": 2,
+      "network_name": "Coffee Shop",
+      "ip_address": "172.16.10.15",
+      "connected": true,
+      "connection_time": 5400,
+      "network_score": 78.5,
+      "points_earned": 110.75,
+      "created_at": "2023-01-12T14:00:00Z",
+      "updated_at": "2023-01-16T10:45:00Z"
+    },
+    {
+      "id": 4,
+      "user_id": 3,
+      "network_name": "University",
+      "ip_address": "198.51.100.25",
+      "connected": true,
+      "connection_time": 9000,
+      "network_score": 92.0,
+      "points_earned": 200.0,
+      "created_at": "2023-01-09T11:30:00Z",
+      "updated_at": "2023-01-14T18:20:00Z"
+    },
+    {
+      "id": 5,
+      "user_id": 4,
+      "network_name": "Mobile Hotspot",
+      "ip_address": "203.0.113.42",
+      "connected": false,
+      "connection_time": 1800,
+      "network_score": 65.5,
+      "points_earned": 40.25,
+      "created_at": "2023-01-13T16:00:00Z",
+      "updated_at": "2023-01-13T16:30:00Z"
+    },
+    {
+      "id": 6,
+      "user_id": 5,
+      "network_name": "Home Network",
+      "ip_address": "192.168.2.50",
+      "connected": true,
+      "connection_time": 6300,
+      "network_score": 91.0,
+      "points_earned": 130.5,
+      "created_at": "2023-01-08T20:00:00Z",
+      "updated_at": "2023-01-13T14:50:00Z"
+    },
+    {
+      "id": 7,
+      "user_id": 2,
+      "network_name": "Library",
+      "ip_address": "203.0.113.80",
+      "connected": false,
+      "connection_time": 2700,
+      "network_score": 82.5,
+      "points_earned": 60.75,
+      "created_at": "2023-01-14T13:00:00Z",
+      "updated_at": "2023-01-14T13:45:00Z"
+    },
+    {
+      "id": 8,
+      "user_id": 4,
+      "network_name": "Friend's House",
+      "ip_address": "192.168.5.10",
+      "connected": true,
+      "connection_time": 4500,
+      "network_score": 87.0,
+      "points_earned": 95.25,
+      "created_at": "2023-01-15T19:00:00Z",
+      "updated_at": "2023-01-17T09:15:00Z"
+    }
+  ],
+  "network_statuses": [
+    {
+      "connection_id": 1,
+      "user_id": 1,
+      "network_name": "Home Network",
+      "connected": true,
+      "status_message": "Stable connection",
+      "network_score": 95.5,
+      "updated_at": "2023-01-15T12:30:00Z"
+    },
+    {
+      "connection_id": 3,
+      "user_id": 2,
+      "network_name": "Coffee Shop",
+      "connected": true,
+      "status_message": "Moderate connection quality",
+      "network_score": 78.5,
+      "updated_at": "2023-01-16T10:45:00Z"
+    },
+    {
+      "connection_id": 4,
+      "user_id": 3,
+      "network_name": "University",
+      "connected": true,
+      "status_message": "Excellent connection",
+      "network_score": 92.0,
+      "updated_at": "2023-01-14T18:20:00Z"
+    },
+    {
+      "connection_id": 6,
+      "user_id": 5,
+      "network_name": "Home Network",
+      "connected": true,
+      "status_message": "Good connection",
+      "network_score": 91.0,
+      "updated_at": "2023-01-13T14:50:00Z"
+    },
+    {
+      "connection_id": 8,
+      "user_id": 4,
+      "network_name": "Friend's House",
+      "connected": true,
+      "status_message": "Good connection",
+      "network_score": 87.0,
+      "updated_at": "2023-01-17T09:15:00Z"
+    }
+  ],
+  "user_public_keys": [
+    {
+      "user_id": 1,
+      "public_key": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+      "created_at": "2023-01-01T00:00:00Z",
+      "last_used": "2023-01-15T12:30:00Z",
+      "revoked": false
+    },
+    {
+      "user_id": 2,
+      "public_key": "e7f6c011776e8db7cd330b54174fd76f7d0216b612387a5ffcfb81e6f0919683",
+      "created_at": "2023-01-02T00:00:00Z",
+      "last_used": "2023-01-16T10:45:00Z",
+      "revoked": false
+    },
+    {
+      "user_id": 3,
+      "public_key": "7902699be42c8a8e46fbbb4501726517e86b22c56a189f7625a6da49081b2451",
+      "created_at": "2023-01-03T00:00:00Z",
+      "last_used": "2023-01-14T18:20:00Z",
+      "revoked": false
+    },
+    {
+      "user_id": 4,
+      "public_key": "2f8bde4d1a0789d8a91ac36e2e85a54e6c45cb477a23fee8c349ab299f98da48",
+      "created_at": "2023-01-04T00:00:00Z",
+      "last_used": "2023-01-17T09:15:00Z",
+      "revoked": false
+    },
+    {
+      "user_id": 5,
+      "public_key": "5d1be7e9dda1e8d7ed9ce6e9b2eb1ec06c24045f3a0add640adad4f3b324fb99",
+      "created_at": "2023-01-05T00:00:00Z",
+      "last_used": "2023-01-13T14:50:00Z",
+      "revoked": false
+    }
+  ]
+} 

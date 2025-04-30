@@ -16,17 +16,20 @@ pub struct Config {
 pub struct ServerConfig {
     pub port: u16,
     pub log_level: String,
+    pub environment: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct DatabaseConfig {
-    pub url: String,
+    pub url: Option<String>,
     pub max_connections: u32,
+    pub connection_timeout: u64,
+    pub seed_on_start: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct RedisConfig {
-    pub url: String,
+    pub url: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -57,18 +60,27 @@ impl Config {
                 .parse()
                 .unwrap_or(8080),
             log_level: env::var("RUST_LOG").unwrap_or_else(|_| "info".to_string()),
+            environment: env::var("ENVIRONMENT").unwrap_or_else(|_| "development".to_string()),
         };
 
         let database = DatabaseConfig {
-            url: env::var("DATABASE_URL").expect("DATABASE_URL must be set"),
+            url: env::var("DATABASE_URL").ok(),
             max_connections: env::var("DATABASE_MAX_CONNECTIONS")
                 .unwrap_or_else(|_| "5".to_string())
                 .parse()
                 .unwrap_or(5),
+            connection_timeout: env::var("DATABASE_CONNECTION_TIMEOUT")
+                .unwrap_or_else(|_| "30".to_string())
+                .parse()
+                .unwrap_or(30),
+            seed_on_start: env::var("DATABASE_SEED_ON_START")
+                .unwrap_or_else(|_| "true".to_string())
+                .parse()
+                .unwrap_or(true),
         };
 
         let redis = RedisConfig {
-            url: env::var("REDIS_URL").expect("REDIS_URL must be set"),
+            url: env::var("REDIS_URL").ok(),
         };
 
         let websocket = WebSocketConfig {
