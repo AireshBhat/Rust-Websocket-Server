@@ -7,13 +7,18 @@ mod models;
 mod routes;
 mod services;
 mod storage;
+#[cfg(debug_assertions)]
+mod dev;
 
 use actix_web::{web, App, HttpServer, Responder, HttpResponse, get, middleware};
 use actix_cors::Cors;
-use tracing::{info, Level};
+use tracing::{info, Level, warn};
 use tracing_subscriber::FmtSubscriber;
 use std::time::Duration;
 use std::sync::Arc;
+use crate::services::SignatureService;
+use crate::services::UserService;
+use crate::storage::memory::InMemoryUserStorage;
 
 #[get("/")]
 async fn hello() -> impl Responder {
@@ -100,6 +105,40 @@ async fn main() -> std::io::Result<()> {
     let config_data = web::Data::new(config.clone());
     let config_port = config.server.port;
     
+    // Initialize in-memory storage for development
+    let user_storage_instance = InMemoryUserStorage::new();
+    let user_storage = web::Data::new(user_storage_instance.clone());
+    
+    // Seed in-memory storage with genesis data in development mode
+    #[cfg(debug_assertions)]
+    if config.server.environment == "development" {
+        info!("Seeding in-memory storage with genesis data");
+        if let Err(e) = genesis::memory_seed::seed_storage(&user_storage_instance).await {
+            warn!("Failed to seed in-memory storage: {}", e);
+        } else {
+            info!("In-memory storage seeded successfully");
+        }
+        
+        // Initialize and register test keys after seeding
+        info!("Initializing development test keys");
+        dev::test_keys::initialize_test_keys();
+        
+        // Register test keys with users if they weren't part of genesis data
+        if let Err(e) = dev::test_keys::register_test_keys_with_users(&user_storage_instance).await {
+            warn!("Failed to register test keys with users: {}", e);
+        }
+    }
+    
+    // Create and register SignatureService
+    let signature_service = web::Data::new(SignatureService::new(Arc::new(user_storage_instance.clone())));
+
+    // Create and register UserService
+    let user_service = web::Data::new(UserService::new(
+        Arc::new(user_storage_instance.clone()),
+        config.auth.jwt_secret.clone(),
+        config.auth.jwt_expiration as i64,
+    ));
+    
     // If we have genesis data, make it available to the application
     let genesis_data = genesis_data.map(web::Data::new);
     
@@ -118,6 +157,10 @@ async fn main() -> std::io::Result<()> {
         let mut app = App::new()
             // Add shared configuration
             .app_data(config_data.clone())
+            // Add storage and services
+            .app_data(user_storage.clone())
+            .app_data(signature_service.clone())
+            .app_data(user_service.clone())
             // Configure request timeouts
             .app_data(
                 web::JsonConfig::default()

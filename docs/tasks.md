@@ -74,8 +74,17 @@
 - [ ] Implement heartbeat mechanism
 - [ ] Create connection registry for tracking active sessions
 - [ ] Implement message broadcasting system
-- [ ] Add support for ed25519 signature verification during WebSocket handshake
-- [ ] Implement WebSocket connection authentication workflow
+- [x] Add support for ed25519 signature verification during WebSocket handshake
+- [x] Implement WebSocket connection authentication workflow
+
+### 3.4 WebSocket Signature Authentication (New)
+- [x] Create WebSocketAuthMessage data model
+- [x] Implement signature verification flow in WebSocket handler
+- [x] Add nonce and timestamp validation to prevent replay attacks
+- [x] Extend WebSocketSession to track authentication state
+- [x] Implement secure rejection of unauthenticated messages
+- [ ] Add rate limiting for authentication attempts
+- [ ] Create security logging for authentication events
 
 ## 4. Handler Layer Implementation
 
@@ -86,15 +95,15 @@
 - [ ] Implement session initialization
 - [ ] Create message routing system
 - [ ] Implement signature verification handler for WebSocket authentication
-- [ ] Add workflow: connection -> spawning thread -> signature verification -> connection establishment
+- [ ] Add workflow: connection -> spawning actix actor -> signature verification -> connection establishment
 
 ### 4.2 HTTP API Handlers
 - [ ] Implement authentication handlers
-- [ ] Create user management handlers
+- [x] Create user management handlers
 - [ ] Implement network management handlers
 - [ ] Create dashboard data handlers
 - [ ] Implement referral system handlers
-- [ ] Create public key management handlers
+- [x] Create public key management handlers
 
 ### 4.3 Error Responses
 - [ ] Create consistent error response format
@@ -106,13 +115,13 @@
 ## 5. Service Layer Implementation
 
 ### 5.1 User Service
-- [ ] Create user service interface
-- [ ] Implement user registration
-- [ ] Implement authentication logic
-- [ ] Create session management
+- [x] Create user service interface
+- [x] Implement user registration
+- [x] Implement authentication logic
+- [x] Create session management
 - [ ] Implement user profile management
 - [ ] Add public key management functionality
-- [ ] Implement methods for retrieving users by public key
+- [x] Implement methods for retrieving users by public key
 
 ### 5.2 Network Service
 - [ ] Create network service interface
@@ -142,12 +151,14 @@
 - [ ] Implement notification prioritization
 - [ ] Create notification history tracking
 
-### 5.6 Signature Service
-- [ ] Create signature service interface
-- [ ] Implement ed25519 signature verification
+### 5.6 Signature Service (New)
+- [x] Create signature service interface
+- [x] Implement ed25519 signature verification
 - [ ] Add caching for frequently used public keys
-- [ ] Create utilities for encoding/decoding keys and signatures
-- [ ] Implement nonce management to prevent replay attacks
+- [x] Create utilities for encoding/decoding keys and signatures
+- [x] Implement nonce management to prevent replay attacks
+- [x] Add support for signature validation with user lookup
+- [x] Create methods for verifying WebSocket authentication messages
 
 ## 6. Storage Layer Implementation
 
@@ -158,6 +169,7 @@
 - [ ] Create earnings storage trait
 - [ ] Implement referral storage trait
 - [ ] Add public key storage trait methods
+- [x] Extend UserStorage trait to support public key lookups
 
 ### 6.2 PostgreSQL Implementation
 - [ ] Implement PostgreSQL user repository
@@ -166,6 +178,7 @@
 - [ ] Create PostgreSQL referral repository
 - [ ] Implement transaction management
 - [ ] Add storage methods for public keys
+- [ ] Implement find_user_by_public_key method
 
 ### 6.3 Redis Implementation
 - [ ] Implement Redis caching layer
@@ -174,6 +187,7 @@
 - [ ] Create Redis pub/sub for notifications
 - [ ] Implement Redis rate limiting
 - [ ] Add caching for public keys and signatures
+- [ ] Create cache invalidation for public key changes
 
 ### 6.4 Blockchain Connector Interface
 - [ ] Design blockchain connector traits
@@ -215,10 +229,11 @@
 - [ ] Implement database mappings for referral models
 
 ### 7.5 Authentication Models
-- [ ] Implement WebSocket authentication message model
-- [ ] Create signature verification request/response models
+- [x] Implement WebSocket authentication message model
+- [x] Create signature verification request/response models
 - [ ] Implement public key management models
 - [ ] Create authentication token models
+- [x] Add WebSocketAuthMessage with timestamp and nonce
 
 ## 8. Testing Implementation
 
@@ -229,6 +244,7 @@
 - [ ] Implement error handling tests
 - [ ] Create utility function tests
 - [ ] Add tests for signature verification
+- [ ] Create tests for WebSocket authentication flow
 
 ### 8.2 Integration Tests
 - [ ] Set up integration test infrastructure
@@ -237,6 +253,7 @@
 - [ ] Implement database interaction tests
 - [ ] Create end-to-end flow tests
 - [ ] Add tests for WebSocket authentication flow
+- [ ] Create signature verification integration tests
 
 ### 8.3 Performance Tests
 - [ ] Set up performance testing framework
@@ -245,6 +262,7 @@
 - [ ] Implement message throughput tests
 - [ ] Create scalability tests
 - [ ] Add signature verification performance tests
+- [ ] Create benchmark tests for authentication throughput
 
 ## 9. Metrics and Monitoring
 
@@ -255,6 +273,7 @@
 - [ ] Implement performance metrics
 - [ ] Create business metrics
 - [ ] Add authentication and signature verification metrics
+- [ ] Create metrics for authentication success/failure rates
 
 ### 9.2 Dashboards
 - [ ] Create Grafana dashboard for system monitoring
@@ -263,6 +282,7 @@
 - [ ] Implement business metrics dashboard
 - [ ] Create alerting rules
 - [ ] Add authentication monitoring dashboard
+- [ ] Create security events dashboard for authentication failures
 
 ## 10. Deployment and Scaling
 
@@ -302,7 +322,7 @@
 
 ### 11.1 Technical Documentation
 - [ ] Create architecture documentation
-- [ ] Implement API documentation
+- [x] Implement API documentation
 - [ ] Create database schema documentation
 - [ ] Implement code documentation
 - [ ] Create deployment documentation

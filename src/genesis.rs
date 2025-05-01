@@ -175,6 +175,90 @@ pub mod seed {
     }
 }
 
+/// Functions to seed in-memory storage for development
+pub mod memory_seed {
+    use super::*;
+    use crate::storage::memory::InMemoryUserStorage;
+    use crate::storage::UserStorage;
+    use tracing::info;
+    
+    /// Seed in-memory storage with all genesis data
+    pub async fn seed_storage(user_storage: &InMemoryUserStorage) -> Result<()> {
+        let genesis_data = GenesisData::load()?;
+        
+        info!("Seeding in-memory storage with genesis data...");
+        
+        // Seed users
+        seed_users(user_storage, &genesis_data.users).await?;
+        
+        // Seed user credentials
+        seed_user_credentials(user_storage, &genesis_data.user_credentials).await?;
+        
+        // Seed user public keys
+        seed_user_public_keys(user_storage, &genesis_data.user_public_keys).await?;
+        
+        info!("In-memory storage seeded successfully!");
+        
+        Ok(())
+    }
+    
+    /// Seed users in in-memory storage
+    async fn seed_users(storage: &InMemoryUserStorage, users: &[User]) -> Result<()> {
+        for user in users {
+            // We need to manually insert users since InMemoryUserStorage's create_user
+            // generates its own IDs, but we need to use the IDs from genesis data
+            let users_lock = storage.get_users_map();
+            let mut users_map = users_lock.lock().map_err(|e| anyhow::anyhow!("Failed to lock users map: {}", e))?;
+            
+            let emails_lock = storage.get_emails_map();
+            let mut emails_map = emails_lock.lock().map_err(|e| anyhow::anyhow!("Failed to lock emails map: {}", e))?;
+            
+            // Insert user data
+            users_map.insert(user.id, user.clone());
+            emails_map.insert(user.email.clone(), user.id);
+            
+            // Ensure next_id is greater than any existing user id
+            let next_id_lock = storage.get_next_id();
+            let mut next_id = next_id_lock.lock().map_err(|e| anyhow::anyhow!("Failed to lock next_id: {}", e))?;
+            if *next_id <= user.id {
+                *next_id = user.id + 1;
+            }
+        }
+        
+        info!("Seeded {} users in memory", users.len());
+        Ok(())
+    }
+    
+    /// Seed user credentials in in-memory storage
+    async fn seed_user_credentials(storage: &InMemoryUserStorage, credentials: &[UserCredentials]) -> Result<()> {
+        for cred in credentials {
+            let credentials_lock = storage.get_credentials_map();
+            let mut credentials_map = credentials_lock.lock().map_err(|e| anyhow::anyhow!("Failed to lock credentials map: {}", e))?;
+            
+            credentials_map.insert(cred.user_id, cred.clone());
+        }
+        
+        info!("Seeded {} user credentials in memory", credentials.len());
+        Ok(())
+    }
+    
+    /// Seed user public keys in in-memory storage
+    async fn seed_user_public_keys(storage: &InMemoryUserStorage, keys: &[UserPublicKey]) -> Result<()> {
+        for key in keys {
+            if key.revoked {
+                continue; // Skip revoked keys
+            }
+            
+            // Store the public key using the built-in method
+            storage.store_public_key(key.user_id, &key.public_key).await
+                .map_err(|e| anyhow::anyhow!("Failed to store public key: {}", e))?;
+        }
+        
+        info!("Seeded user public keys in memory");
+        Ok(())
+    }
+}
+
 /// Test functions for the genesis module
 #[cfg(test)]
 mod tests {

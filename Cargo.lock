@@ -3119,6 +3119,7 @@ dependencies = [
  "dotenv",
  "ed25519-dalek",
  "futures",
+ "hex",
  "jsonwebtoken",
  "mockall",
  "nanoid",

@@ -102,25 +102,43 @@ pub struct WebSocketActor {
 ### 4.2 WebSocket Authentication Workflow
 
 1. **Client Connection Initiation**:
-   * Client connects to WebSocket endpoint
-   * Actix spawns a new WebSocketActor for the connection
+   * Client connects to WebSocket endpoint (`/ws/dashboard`, `/ws/earnings`, etc.)
+   * Server creates a new `WebSocketSession` with `auth_state = AuthState::NotAuthenticated`
+   * Session starts with a heartbeat mechanism and authentication timeout
 
-2. **Initial Message with Signature**:
+2. **Server Requests Authentication**:
+   * Server sends a welcome message with `"auth_required": true`
+   * Connection remains in a limited state until authenticated
+
+3. **Client Authentication**:
    * Client sends an authentication message containing:
-     * User identifier (address/public key)
-     * Message timestamp to prevent replay attacks
-     * Ed25519 signature of the message
+     * Ed25519 public key (hex-encoded)
+     * Current timestamp (to prevent replay attacks)
+     * Random nonce (for uniqueness)
+     * Ed25519 signature of the combined timestamp and nonce
+   * Format: `{ "type": "auth", "data": { "public_key": "...", "timestamp": 1234567890, "nonce": "...", "signature": "..." } }`
 
-3. **Signature Verification**:
-   * WebSocketActor receives the message
-   * Extracts public key and retrieves user information from database
-   * Verifies the signature using ed25519-dalek
-   * If verification succeeds, marks connection as authenticated
-   * If verification fails, closes the connection
+4. **Signature Verification**:
+   * `SignatureService` verifies the signature asynchronously
+   * Validates message structure and timestamp freshness
+   * Constructs the message that was signed (timestamp:nonce)
+   * Verifies the ed25519 signature against the provided public key
 
-4. **Connection Establishment**:
-   * After successful authentication, normal WebSocket communication begins
-   * Periodic re-authentication may be required for long-lived connections
+5. **User Association**:
+   * Looks up the user associated with the public key using `UserStorage`
+   * If found, marks the connection as authenticated (`auth_state = AuthState::Authenticated`)
+   * Associates user ID with the session for future operations
+   * If not found but signature is valid, sends appropriate error
+
+6. **Connection Establishment**:
+   * Success: Server sends `{ "type": "auth_success", "user_id": 123, "session_id": "..." }`
+   * Failure: Server sends `{ "type": "error", "code": "auth_failed", "message": "..." }`
+   * Failed authentications result in connection closure after a short delay
+
+7. **Secure Communication**:
+   * After authentication, connection accepts regular messages
+   * Unauthenticated messages are rejected with appropriate errors
+   * Heartbeat mechanism maintains the connection
 
 ```rust
 #[derive(Debug, Serialize, Deserialize)]
@@ -131,24 +149,65 @@ pub struct WebSocketAuthMessage {
     pub signature: String,
 }
 
-// Authentication flow in actor
-impl Handler<WebSocketAuthMessage> for WebSocketActor {
-    type Result = ();
-
-    fn handle(&mut self, msg: WebSocketAuthMessage, ctx: &mut Self::Context) {
-        // Verify signature
-        if self.services.signature_service.verify_signature(
-            &msg.public_key,
-            &format!("{}:{}", msg.timestamp, msg.nonce),
-            &msg.signature,
-        ) {
-            self.authenticated = true;
-            self.user_id = Some(self.services.user_service.get_user_id_by_public_key(&msg.public_key));
-        } else {
-            // Close connection on authentication failure
-            ctx.stop();
+// Authentication flow in WebSocketSession
+fn verify_authentication(&mut self, auth_msg: WebSocketAuthMessage, ctx: &mut ws::WebsocketContext<Self>) -> Result<(), String> {
+    // Ensure we have a signature service
+    let signature_service = match &self.signature_service {
+        Some(s) => s.clone(),
+        None => return Err("Signature service not configured".to_string()),
+    };
+    
+    // Clone data for async processing
+    let auth_clone = auth_msg.clone();
+    let session_id = self.id.clone();
+    let public_key = auth_msg.public_key.clone();
+    
+    // Spawn asynchronous verification future
+    use actix::fut::wrap_future;
+    use actix::ActorFutureExt;
+    let fut = wrap_future(async move {
+        signature_service.verify_websocket_auth(&auth_clone).await
+    })
+    .map(move |res, act: &mut WebSocketSession<T>, ctx| {
+        match res {
+            Ok(Some(user_id)) => {
+                // Successful authentication
+                act.auth_state = AuthState::Authenticated;
+                act.user_id = Some(user_id);
+                act.public_key = Some(public_key.clone());
+                info!("WebSocket authenticated for user {}: {}", user_id, session_id);
+                ctx.text(json!({
+                    "type": "auth_success",
+                    "user_id": user_id,
+                    "session_id": session_id
+                }).to_string());
+            }
+            Ok(None) => {
+                // Valid signature but no associated user
+                act.auth_state = AuthState::Failed;
+                warn!("WebSocket valid signature but no user: {}", session_id);
+                ctx.text(json!({
+                    "type": "error",
+                    "code": "unknown_key",
+                    "message": "Valid signature but no user associated with this public key"
+                }).to_string());
+                ctx.run_later(act.close_delay, |_, ctx| ctx.stop());
+            }
+            Err(e) => {
+                // Invalid signature or other error
+                act.auth_state = AuthState::Failed;
+                error!("WebSocket authentication error: {}: {}", e, session_id);
+                ctx.text(json!({
+                    "type": "error",
+                    "code": "auth_failed",
+                    "message": format!("Authentication failed: {}", e)
+                }).to_string());
+                ctx.run_later(act.close_delay, |_, ctx| ctx.stop());
+            }
         }
-    }
+    });
+    ctx.spawn(fut);
+    Ok(())
 }
 ```
 

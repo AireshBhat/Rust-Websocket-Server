@@ -190,4 +190,46 @@ impl<T: UserStorage> UserService<T> {
         // Delete user
         self.storage.delete_user(id).await
     }
+
+    /// Add a public key to a user
+    pub async fn add_public_key(&self, user_id: i64, public_key: &str) -> DashboardResult<()> {
+        // Validate that user exists
+        self.get_user(user_id).await?;
+        
+        // Validate public key format - should be a 64-character hex string
+        if !Self::is_valid_ed25519_public_key(public_key) {
+            return Err(DashboardError::validation("Invalid public key format. Expected a 64-character hex string."));
+        }
+        
+        // Store the public key
+        self.storage.store_public_key(user_id, public_key).await
+    }
+    
+    /// Get public keys for a user
+    pub async fn get_public_keys(&self, user_id: i64) -> DashboardResult<Vec<String>> {
+        // Validate that user exists
+        self.get_user(user_id).await?;
+        
+        // Get public keys
+        self.storage.get_public_keys_for_user(user_id).await
+    }
+    
+    /// Revoke a public key for a user
+    pub async fn revoke_public_key(&self, user_id: i64, public_key: &str) -> DashboardResult<bool> {
+        // Validate that user exists
+        self.get_user(user_id).await?;
+        
+        // Revoke the public key
+        self.storage.revoke_public_key(user_id, public_key).await
+    }
+    
+    /// Find a user by public key
+    pub async fn find_user_by_public_key(&self, public_key: &str) -> DashboardResult<Option<User>> {
+        self.storage.find_user_by_public_key(public_key).await
+    }
+    
+    /// Validate that a string is a valid ed25519 public key (64-character hex string)
+    fn is_valid_ed25519_public_key(public_key: &str) -> bool {
+        public_key.len() == 64 && public_key.chars().all(|c| c.is_ascii_hexdigit())
+    }
 } 

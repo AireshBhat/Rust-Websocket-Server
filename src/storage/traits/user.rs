@@ -46,4 +46,19 @@ pub trait UserStorage: Send + Sync + 'static {
     
     /// Update user's last active timestamp
     async fn update_last_active(&self, user_id: i64) -> DashboardResult<()>;
-} 
+    
+    /// Find a user by their public key
+    async fn find_user_by_public_key(&self, public_key: &str) -> DashboardResult<Option<User>>;
+    
+    /// Store a public key for a user
+    async fn store_public_key(&self, user_id: i64, public_key: &str) -> DashboardResult<()>;
+    
+    /// Revoke a public key for a user
+    async fn revoke_public_key(&self, user_id: i64, public_key: &str) -> DashboardResult<bool>;
+    
+    /// Get all public keys for a user
+    async fn get_public_keys_for_user(&self, user_id: i64) -> DashboardResult<Vec<String>>;
+    
+    /// Update the last_used timestamp for a public key
+    async fn update_public_key_last_used(&self, user_id: i64, public_key: &str) -> DashboardResult<()>;
+}

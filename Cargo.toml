@@ -73,6 +73,9 @@ num_cpus = "1.16.0"
 # Cryptography
 ed25519-dalek = "2.0.0"
 
+# Hex crate
+hex = "0.4"
+
 [dev-dependencies]
 mockall = "0.11"
 rstest = "0.18"

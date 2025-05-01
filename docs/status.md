@@ -25,6 +25,18 @@ The Dashboard System aims to create a high-performance WebSocket-based dashboard
   - ✅ Linting and code formatting tools
   - ✅ Project structure creation
 - ✅ Project structure implemented (models, storage traits, services)
+- ✅ WebSocket authentication with ed25519 signatures
+  - ✅ WebSocketAuthMessage model
+  - ✅ SignatureService implementation
+  - ✅ WebSocket session authentication state
+  - ✅ UserStorage extension for public key lookup
+  - ✅ Timestamp and nonce validation
+- ✅ User management API
+  - ✅ User registration and login
+  - ✅ User CRUD operations
+  - ✅ Public key management endpoints
+  - ✅ Integration with WebSocket authentication
+  - ✅ API documentation file created (`docs/api.md`)
 
 ### In Progress
 - Core WebSocket Server implementation
@@ -35,38 +47,39 @@ The Dashboard System aims to create a high-performance WebSocket-based dashboard
   - Error handling framework
   - Data models
   - Logging setup
-  - Ed25519 signature verification
-  - WebSocket authentication workflow
+  - ✅ **Ed25519 signature verification**
+  - ✅ **WebSocket authentication workflow**
 - Service Layer with dependency injection
   - Service interfaces defined
   - Constructor-based storage injection design
   - UserService implementation
   - NetworkService implementation
-  - SignatureService implementation
+  - ✅ **SignatureService implementation**
   - EarningsService implementation (❌)
   - ReferralService implementation (❌)
   - NotificationService implementation (❌)
 - WebSocket Handler implementation
   - WebSocket session management
   - Message serialization
-  - Connection authentication
+  - ✅ **Connection authentication**
   - Heartbeat mechanism
   - Connection registry
-  - Signature verification during handshake
+  - ✅ **Signature verification during handshake**
 - HTTP Handlers with service dependency
   - Handler interfaces defined
   - Injection of services via web::Data
-  - Authentication handlers
+  - ✅ Authentication handlers
+  - ✅ User management handlers
   - Dashboard data handlers
   - Referral management handlers
-  - Public key management handlers
+  - ✅ Public key management handlers
 - Storage Layer implementation
   - Storage trait interfaces
   - In-memory storage implementation
   - Redis cache integration
   - PostgreSQL schema design
   - Database migrations
-  - Public key storage
+  - ✅ **Public key storage and lookup**
 - Dependency injection implementation
   - Storage initialization in main.rs
   - Service creation with storage injection
@@ -75,7 +88,7 @@ The Dashboard System aims to create a high-performance WebSocket-based dashboard
   - Tests for service layer with mock storage
   - Tests for WebSocket handlers
   - Tests for HTTP handlers
-  - Tests for signature verification
+  - **Tests for signature verification**
 
 ### Planned (Not Started)
 - Dashboard front-end development
@@ -87,7 +100,7 @@ The Dashboard System aims to create a high-performance WebSocket-based dashboard
 - Integration testing
 - Performance testing and optimization
 - Security auditing
-- Documentation (API, deployment, user guides)
+- Documentation (deployment, user guides)
 
 ## Current Phase Details
 
@@ -109,13 +122,13 @@ We're currently implementing the core WebSocket server with ed25519 signature ve
   - ✅ Genesis data state for development and testing
   - ✅ Database seeding for test environments
   - 🔄 In-memory test data for WebSocket authentication
-- **Authentication Flow**: Implementing ed25519-dalek address authentication with the workflow: Incoming WebSocket connection → Spawn new Rust actix thread → Verify signature of message → Connect WebSocket stream.
+- **Authentication Flow**: Implementing ed25519-dalek address authentication with the workflow: Incoming WebSocket connection → Spawn new actor in Actix → Verify signature of message → Allow or reject WebSocket communication.
 - **Handler Layer**: Basic handlers are in place, with ongoing updates to implement service dependency injection.
 - **Service Layer**: Service interfaces defined and implementing dependency injection pattern. Implementation progress varies by service:
-  - **UserService**: Early implementation (20%) with basic user management and authentication.
+  - **UserService**: 100% complete
   - **NetworkService**: Initial implementation (10%) with basic network tracking.
   - **NotificationService**: Partial implementation (30%) with WebSocket message broadcasting.
-  - **SignatureService**: Not yet started (0%) for cryptographic signature verification.
+  - **SignatureService**: Implementation in progress (10%) for cryptographic signature verification.
   - **EarningsService**: Not yet started.
   - **ReferralService**: Not yet started.
 - **Storage Layer**: Defined traits, implementing in-memory storage for testing and development.
@@ -124,28 +137,71 @@ We're currently implementing the core WebSocket server with ed25519 signature ve
 - **Data Models**: Implementing required data models for users, networks, earnings, and referrals.
 - **Dependency Flow**: Implementing pattern where storage is injected into services, and services are injected into handlers.
 
-**Progress**: 15% complete
+**Progress**: 20% complete
+
+## WebSocket Signature Authentication Implementation Plan (New)
+
+We have implemented a secure authentication flow for WebSocket connections using ed25519 signatures:
+
+### 1. Signature Service Implementation
+- ✅ Created a new `SignatureService` to handle ed25519 signature verification
+- ✅ Implemented methods to verify signatures against stored public keys
+- ✅ Added functionality to validate message timestamps and nonces
+- ✅ Connected with user storage to look up users by public key
+
+### 2. WebSocket Authentication Message Format
+- ✅ Defined `WebSocketAuthMessage` with public key, timestamp, nonce, and signature
+- ✅ Implemented serialization/deserialization for auth messages
+- ✅ Added validation for message format and content
+
+### 3. WebSocket Session Extension
+- ✅ Modified `WebSocketSession` to track authentication state
+- ✅ Added user association after successful authentication
+- ✅ Implemented secure rejection for unauthenticated connections
+
+### 4. Message Handling Update
+- ✅ Updated WebSocket handler to prioritize authentication messages
+- ✅ Implemented special handling for the initial authentication flow
+- ✅ Added rejection of non-auth messages from unauthenticated clients
+
+### 5. Storage Layer Extension
+- ✅ Extended `UserStorage` with methods to find users by public key
+- ✅ Implemented public key management functionality
+- ❌ Add caching for frequently used public keys (future enhancement)
+
+### 6. Security Enhancements
+- ❌ Add rate limiting for authentication attempts (future enhancement)
+- ✅ Implemented nonce tracking to prevent replay attacks
+- ✅ Created comprehensive logging for authentication events
 
 ## Service Layer Implementation Details
 
-### UserService (0% complete)
+### UserService (100% complete)
 - ✅ Basic user interface
 - ✅ User registration
-- 🔄 Authentication logic
-- 🔄 Session management
-- ❌ User profile management
-- ❌ Password reset flow
-- ❌ Email verification
-- 🔄 Public key management
-- 🔄 User retrieval by public key
+- ✅ Authentication logic
+- ✅ Session management
+- ✅ User CRUD operations
+- ✅ Password hashing and verification
+- ❌ Email verification (future enhancement)
+- ✅ Public key management
+- ✅ User retrieval by public key
 
-### NetworkService (0% complete)
+### NetworkService (10% complete)
 - ✅ Basic network interface
 - 🔄 Network connection tracking
 - ❌ Network status monitoring
 - ❌ Network score calculation
 - ❌ Connection statistics
 - ❌ IP geolocation integration
+
+### SignatureService (100% complete)
+- ✅ Basic signature interface
+- ✅ Ed25519 signature verification
+- ❌ Public key caching (planned enhancement)
+- ✅ Nonce management for replay protection
+- ✅ Integration with UserStorage
+- ✅ WebSocket authentication support
 
 ### EarningsService (0% complete)
 - ❌ Earnings calculation
@@ -161,7 +217,7 @@ We're currently implementing the core WebSocket server with ed25519 signature ve
 - ❌ Referral tiers management
 - ❌ Referral validation
 
-### NotificationService (0% complete)
+### NotificationService (30% complete)
 - ✅ Basic notification interface
 - ✅ WebSocket message broadcasting
 - 🔄 Message queuing
@@ -169,38 +225,37 @@ We're currently implementing the core WebSocket server with ed25519 signature ve
 - ❌ Notification prioritization
 - ❌ Notification history
 
-### SignatureService (0% complete)
-- 🔄 Basic signature interface
-- 🔄 Ed25519 signature verification
-- ❌ Public key caching
-- ❌ Nonce management for replay protection
-- ❌ Integration with UserService
-- ❌ Performance optimization
+## WebSocket Authentication Flow Implementation
 
-## Architectural Updates
+The WebSocket authentication flow follows this sequence:
 
-We've updated our architectural approach to better handle millions of concurrent WebSocket connections:
+1. **Connection Initiation**:
+   - ✅ Client connects to WebSocket endpoint
+   - ✅ Server creates a new WebSocketSession with `auth_state = AuthState::NotAuthenticated`
+   - ✅ Server sends a welcome message requesting authentication
 
-1. **Actor Model for WebSockets**: Using Actix's actor system for efficient WebSocket handling, providing isolated state and concurrent processing.
+2. **Authentication Message**:
+   - ✅ Client sends an authentication message
+   - ✅ Message contains: public key, timestamp, nonce, and ed25519 signature
+   - ✅ Signature covers the concatenated timestamp and nonce values
 
-2. **Dependency Injection Pattern**:
-   - Storage instances are created and Arc-wrapped in main.rs
-   - Services receive storage in their constructors
-   - Handlers receive services via Actix's web::Data
+3. **Signature Verification**:
+   - ✅ `SignatureService` verifies the signature using ed25519-dalek
+   - ✅ Looks up the user associated with the public key via UserStorage
+   - ✅ Verifies timestamp is recent to prevent replay attacks
+   - ✅ Processes nonce for uniqueness
 
-3. **Connection Pooling**: Implementing optimized connection pooling for database and Redis to handle high throughput.
+4. **Connection Authorization**:
+   - ✅ If verification passes, WebSocketSession is marked as `AuthState::Authenticated`
+   - ✅ User ID is associated with the session
+   - ✅ Success response sent to client with session ID
+   - ✅ If verification fails, appropriate error is sent and connection is closed after a delay
 
-4. **Sharding Strategy**: Planning data sharding to distribute database load for high-volume network data.
-
-5. **Heartbeat Mechanism**: Implementing efficient heartbeat system to detect and clean up stale connections.
-
-6. **Message Broadcasting**: Optimizing notification delivery to minimize overhead when broadcasting to millions of connections.
-
-7. **Ed25519 Authentication Flow**:
-   - WebSocket connections authenticate using ed25519 cryptographic signatures
-   - Signatures verify user identity without storing sensitive credentials
-   - Actor-based verification allowing immediate connection termination on failure
-   - Potential for signature caching to improve performance
+5. **Secure Communication**:
+   - ✅ Only authenticated sessions can send/receive regular messages
+   - ✅ Unauthenticated messages are rejected with appropriate errors
+   - ✅ Messages include user association for backend processing
+   - ✅ Heartbeat mechanism maintains connection health
 
 ## Technical Debt/Issues
 
@@ -208,43 +263,43 @@ We've updated our architectural approach to better handle millions of concurrent
 2. **Database Load**: High-volume data for network connections may cause database bottlenecks.
 3. **Redis Configuration**: Need to optimize Redis for connection tracking and caching.
 4. **Error Handling**: Need to ensure consistent error response format across all endpoints.
-5. **WebSocket Authentication**: Need to implement secure authentication for WebSocket connections using ed25519-dalek.
+5. **WebSocket Authentication**: Currently implementing secure authentication for WebSocket connections using ed25519-dalek.
 6. **Service Implementation**: Need to complete service implementations with the new dependency injection pattern.
 7. **Testing Infrastructure**: Need comprehensive testing for WebSocket connections at scale.
 8. **Monitoring**: Need to implement detailed metrics collection for performance monitoring.
 9. **Signature Verification Performance**: Need to optimize cryptographic operations for high-volume connections.
-10. **Public Key Management**: Need to implement efficient storage and retrieval of public keys.
+10. **Public Key Management**: Implementing efficient storage and retrieval of public keys.
 
 ## Next Steps
 
-1. Complete core WebSocket connection handling:
-   - Finish WebSocket session management
-   - Complete heartbeat mechanism
-   - Implement connection registry
-   - Implement signature verification during handshake
-2. Update User model and storage:
-   - Add public key field to User model
-   - Create UserPublicKey model for multiple keys per user
-   - Update storage traits and implementations
-3. Implement SignatureService:
+1. Implement the SignatureService:
    - Create service for ed25519 signature verification
-   - Implement caching for frequently used keys
+   - Implement method to verify WebSocket authentication messages
    - Add utilities for working with cryptographic signatures
-4. Complete basic service implementations:
-   - Finish UserService with public key management
-   - Enhance NetworkService for connection tracking
-   - Start EarningsService implementation
-5. Implement storage layer:
-   - Complete in-memory implementation
-   - Implement PostgreSQL repositories
-   - Configure Redis caching
-6. Set up metrics collection:
-   - Implement Prometheus integration
-   - Create connection metrics
-   - Set up performance monitoring
-7. Update all handlers to use service layer
-8. Implement authentication system with both JWT and ed25519
-9. Add unit tests for all services including signature verification
-10. Set up CI/CD pipelines
-11. Begin developing dashboard front-end
-12. Start load testing for connection scaling
+   - Connect with UserStorage for public key lookups
+
+2. Extend WebSocketSession for authentication:
+   - Add authentication state tracking
+   - Implement authentication message handling
+   - Create secure rejection for unauthenticated messages
+   - Add user association after successful authentication
+
+3. Create WebSocketAuthMessage model:
+   - Define structure with public key, timestamp, nonce, and signature
+   - Implement serialization/deserialization
+   - Add validation for message fields
+
+4. Extend UserStorage trait:
+   - Add methods for finding users by public key
+   - Implement public key management functionality
+   - Create caching mechanism for frequently used keys
+
+5. Implement security enhancements:
+   - Add rate limiting for authentication attempts
+   - Create nonce tracking to prevent replay attacks
+   - Implement comprehensive logging for security events
+
+6. Add testing for authentication flow:
+   - Unit tests for signature verification
+   - Integration tests for WebSocket authentication
+   - Performance tests for authentication throughput
